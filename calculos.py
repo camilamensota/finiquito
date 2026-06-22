@@ -14,10 +14,38 @@ def calcular(datos):
         else:
                 prima_decimal= 0.25
 
+        #calcula lo pendiente
         monto_sueldos=dias_salario_pendiente * salario
         monto_vacaciones_pendientes= dias_vacaciones_pendientes * salario
         monto_prima_vacacional=prima_decimal*monto_vacaciones_pendientes
 
-        total_finiquito=monto_sueldos=dias_salario_pendiente + monto_vacaciones_pendientes
+        #calcula lo proporcional al año
+        fecha_ingreso=datetime.strptime(datos["ingreso"], "%d/%m/%Y")
+        fecha_baja=datetime.strptime(datos["baja"], "%d/%m/%Y")
+        anio_baja=fecha_baja.year
+        inicio_anio_baja=datetime(anio_baja, 1, 1)
 
+        if fecha_ingreso > inicio_anio_baja:
+                fecha_inicio_calculo = fecha_ingreso
+        else:
+                fecha_inicio_calculo = inicio_anio_baja
+        
+        dias_del_anio = (fecha_baja - fecha_inicio_calculo).days + 1
+
+        dias_aguinaldo_anual = int(datos["dias_aguinaldo"]) if datos["dias_aguinaldo"] else 15
+        dias_proporcion_aguinaldo = (dias_aguinaldo_anual / 365) * dias_del_anio
+        monto_aguinaldo_proporcional = dias_proporcion_aguinaldo * salario
+
+        dias_vacaciones_anual = int(datos["vacaciones"]) if datos["vacaciones"] else 12
+        factor_vacaciones = dias_vacaciones_anual / 365
+        vacaciones_proporcionales = factor_vacaciones * dias_del_anio
+        monto_vacaciones_proporcionales = vacaciones_proporcionales * salario
+        monto_prima_proporcional = monto_vacaciones_proporcionales * prima_decimal
+    
+        total_liquidacion += monto_aguinaldo_proporcional + monto_vacaciones_proporcionales + monto_prima_proporcional
+        total_finiquito = monto_sueldos + monto_vacaciones_pendientes + monto_prima_vacacional
+
+        vacaciones_proporcionales = factor_vacaciones * dias_del_anio
+
+        return total_finiquito, total_liquidacion
 
