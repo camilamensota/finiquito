@@ -1,160 +1,125 @@
-import customtkinter as ctk #as sirve para abreviarlo pq es mucho texto ajja
+import customtkinter as ctk
 from tkcalendar import DateEntry
-from calculos import calcular_finiquito
+from calculos import calcular
 
-#FUNCION PARA TOMAR LOS DATOS REGISTRADOS
+
 def ejecutar_calculo():
     datos = {
-        "motivo" : motivo.get(), #para obtener los datos en una funcion, cuando el usuario le de clic en CALCULAR, la funcion ejecutar_calculo leera lo que se escribió
-        #la libreria CTK almacena la información metida dentro de los objetos (como ctkEntry) y usamos el método .get() para poder extraer los datos que se ingresaron
-        # "motivo" se refiere a la llave o la etiqueta y motivo.get( ) extrae el valor de la variable y todo lo guardamos dentro del diccionario datos
-        "ingreso" : ingreso.get(),
-        "baja" : baja.get(),
-        "dias_aguinaldo" : dias_aguinaldo.get(),
-        "prima" : prima.get(),
-        "vacaciones" : vacaciones.get(),
-        "v_p" :  v_p.get(),
-        "salario_diario" :  salario_diario.get(),
-        "s_p" : s_p.get()
+        "motivo":        motivo.get(),
+        "ingreso":       ingreso.get(),
+        "baja":          baja.get(),
+        "dias_aguinaldo": dias_aguinaldo.get(),
+        "prima":         prima.get(),
+        "vacaciones":    vacaciones.get(),
+        "v_p":           v_p.get(),
+        "salario_diario": salario_diario.get(),
+        "s_p":           s_p.get(),
     }
-    resultado= ejecutar_calculo(datos)
-    print(resultado)
 
-ctk.set_appearance_mode("System") #Establece que la aplicación se quede con el modo de color que tenga el usuario puesto oscuro/claro
-ctk.set_default_color_theme("blue") #Temsa de color, será azul en este caso
+    res = calcular(datos)
 
-#ventanas
-root = ctk.CTk() #crea la ventana principal 
-root.geometry("1000x980") #Le estamos definiendo un tamaño a la ventana 
-#titulo
+    texto_resultado = (
+        f"--- DESGLOSE DE CONCEPTOS ---\n\n"
+        f"Aguinaldo Proporcional:          ${res['aguinaldo_proporcional']:.2f}\n"
+        f"Vacaciones Proporcionales:       ${res['vacaciones_proporcionales']:.2f}\n"
+        f"Prima Vacacional Proporcional:   ${res['prima_proporcional']:.2f}\n"
+        f"Sueldos/Vacaciones Pendientes:   "
+        f"${res['sueldos_pendientes'] + res['vacaciones_pendientes'] + res['prima_vacacional_pendiente']:.2f}\n\n"
+        f"TOTAL FINIQUITO:                 ${res['total_finiquito']:.2f}\n"
+        f"----------------------------------------\n"
+        f"Indemnización 90 días:           ${res['indemnizacion_90']:.2f}\n"
+        f"Indemnización 20 días x año:     ${res['indemnizacion_20']:.2f}\n"
+        f"Prima de Antigüedad:             ${res['prima_antiguedad']:.2f}\n\n"
+        f"TOTAL LIQUIDACIÓN:               ${res['total_liquidacion']:.2f}\n"
+        f"========================\n"
+        f"GRAN TOTAL A RECIBIR:            ${res['gran_total']:.2f}"
+    )
+
+    label_resultado.configure(text=texto_resultado)
+
+
+# ── CONFIGURACIÓN GENERAL ────────────────────────────────────────────────────
+ctk.set_appearance_mode("System")
+ctk.set_default_color_theme("blue")
+
+root = ctk.CTk()
+root.geometry("1100x800")
+
 titulo = ctk.CTkLabel(
     root,
     text="Sistema para el cálculo de finiquitos",
-    font=("Arial",30)
+    font=("Arial", 30, "bold"),
 )
-titulo.pack(
-    pady=30
-    )
+titulo.pack(pady=20)
 
-#INGRESO DE DATOS
-label_motivo = ctk.CTkLabel(
-    root, 
-    text="Motivo de la baja", 
-    font=("Arial", 12)
-)
-label_motivo.pack(pady=(10, 0))
+# ── CONTENEDOR PRINCIPAL ─────────────────────────────────────────────────────
+contenedor_principal = ctk.CTkFrame(root, fg_color="transparent")
+contenedor_principal.pack(fill="both", expand=True, padx=20, pady=10)
 
-#motivo de la baja
-motivo=ctk.CTkComboBox(
-    root,
-    values=["Renuncia","Despido"]
-)
-motivo.pack(
-    pady=10
-)
+contenedor_principal.columnconfigure(0, weight=1)
+contenedor_principal.columnconfigure(1, weight=1)
+contenedor_principal.rowconfigure(0, weight=1)
 
-label_ingreso = ctk.CTkLabel(
-    root,
-    text="Fecha de ingreso",
-    font=("Arial", 12)
-)
-label_ingreso.pack(
-    pady=(5, 0)
-)
-#fecha de ingreso
+frame_izquierdo = ctk.CTkFrame(contenedor_principal)
+frame_izquierdo.grid(row=0, column=0, padx=10, pady=10, sticky="nsew")
+
+frame_derecho = ctk.CTkFrame(contenedor_principal)
+frame_derecho.grid(row=0, column=1, padx=10, pady=10, sticky="nsew")
+
+# ── FORMULARIO IZQUIERDO ─────────────────────────────────────────────────────
+ctk.CTkLabel(frame_izquierdo, text="Motivo de la baja", font=("Arial", 12)).pack(pady=(10, 0))
+motivo = ctk.CTkComboBox(frame_izquierdo, values=["Renuncia", "Despido"], width=250)
+motivo.pack(pady=5)
+
+ctk.CTkLabel(frame_izquierdo, text="Fecha de ingreso", font=("Arial", 12)).pack(pady=(5, 0))
 ingreso = DateEntry(
-    root,
-    width=15,
-    background='#2b2b2b',
-    foreground='white',
-    headersbackground='#1f1f1f',
-    headersforeground='white',
-    selectbackground='#1f538d',
-    selectforeground='white',
-    date_pattern='dd/mm/yyyy'
+    frame_izquierdo, width=15,
+    background="#2b2b2b", foreground="white",
+    headersbackground="#1f1f1f", headersforeground="white",
+    selectbackground="#1f538d", selectforeground="white",
+    date_pattern="dd/mm/yyyy",
 )
-ingreso.pack(pady=(10, 0))
+ingreso.pack(pady=5)
 
-label_baja=ctk.CTkLabel(
-    root, 
-    text="Fecha de baja",
-    font=("Arial", 12)
-)
-label_baja.pack(
-    pady=(5, 0)
-)
-#fecha de baja
+ctk.CTkLabel(frame_izquierdo, text="Fecha de baja", font=("Arial", 12)).pack(pady=(5, 0))
 baja = DateEntry(
-    root,
-    width=15,
-    background='#2b2b2b',
-    foreground='white',
-    headersbackground='#1f1f1f',
-    headersforeground='white',
-    selectbackground='#1f538d',
-    selectforeground='white',
-    date_pattern='dd/mm/yyyy'
+    frame_izquierdo, width=15,
+    background="#2b2b2b", foreground="white",
+    headersbackground="#1f1f1f", headersforeground="white",
+    selectbackground="#1f538d", selectforeground="white",
+    date_pattern="dd/mm/yyyy",
 )
-baja.pack(pady=10)
+baja.pack(pady=5)
 
-#dias de aguinaldo
-dias_aguinaldo=ctk.CTkEntry(
-    root,
-    placeholder_text="Días de aguinaldo"
-)
-dias_aguinaldo.pack(
-    pady=10
-)
+dias_aguinaldo  = ctk.CTkEntry(frame_izquierdo, placeholder_text="Días de aguinaldo", width=250)
+dias_aguinaldo.pack(pady=5)
 
-#prima vacacional %
-prima=ctk.CTkEntry(
-    root,
-    placeholder_text="Prima Vacacional"
-)
-prima.pack(
-    pady=10
-)
+prima           = ctk.CTkEntry(frame_izquierdo, placeholder_text="Prima Vacacional (ej. 25 o 0.25)", width=250)
+prima.pack(pady=5)
 
-#días de vacaciones por año
-vacaciones=ctk.CTkEntry(
-    root,
-    placeholder_text="Días de vacaciones por año"
-)
-vacaciones.pack(
-    pady=10
-)
+vacaciones      = ctk.CTkEntry(frame_izquierdo, placeholder_text="Días de vacaciones por año", width=250)
+vacaciones.pack(pady=5)
 
-#días de vacaciones pendientes
-v_p=ctk.CTkEntry(
-    root,
-    placeholder_text="Días de vacaciones pendientes"
-)
-v_p.pack(
-    pady=10
-)
+v_p             = ctk.CTkEntry(frame_izquierdo, placeholder_text="Días de vacaciones pendientes", width=250)
+v_p.pack(pady=5)
 
-#salario diario
-salario_diario=ctk.CTkEntry(
-    root,
-    placeholder_text="Salario diario"
-)
-salario_diario.pack(
-    pady=10
-)
+salario_diario  = ctk.CTkEntry(frame_izquierdo, placeholder_text="Salario diario", width=250)
+salario_diario.pack(pady=5)
 
-#Días de salario pendiente
-s_p=ctk.CTkEntry(
-    root,
-    placeholder_text="Días de salario pendiente"
+s_p             = ctk.CTkEntry(frame_izquierdo, placeholder_text="Días de salario pendiente", width=250)
+s_p.pack(pady=5)
+
+ctk.CTkButton(frame_izquierdo, text="CALCULAR", command=ejecutar_calculo).pack(pady=15)
+
+# ── PANEL DERECHO ────────────────────────────────────────────────────────────
+ctk.CTkLabel(frame_derecho, text="Resultados del Cálculo", font=("Arial", 18, "bold")).pack(pady=20)
+
+label_resultado = ctk.CTkLabel(
+    frame_derecho,
+    text="Ingresa los datos y presiona CALCULAR",
+    font=("Arial", 14),
+    justify="left",
 )
+label_resultado.pack(pady=20, padx=20)
 
-#boton
-boton = ctk.CTkButton(
-    root,
-    text="CALCULAR",
-    command=ejecutar_calculo
-)
-boton.pack(pady=20)
-
-
-root.mainloop()#ejecuta la aplicación
+root.mainloop()
